@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class ReadDemo {
+public class ReadDemoArray {
     public static void main(String[] args) {
         // Specify the path to the JSON file on the classpath
         String filePath = "/fdda_system.json"; // Note the leading slash
@@ -23,10 +23,16 @@ public class ReadDemo {
                 // Access the system list
                 List<SystemList.SystemInfo> systems = systemList.getSystems();
 
+                // Extract system names into a String[]
+                String[] nameList = systems.stream()
+                        .map(SystemList.SystemInfo::getName)
+                        .toArray(String[]::new);
+
                 // Display system names
-                for (SystemList.SystemInfo system : systems) {
-                    System.out.println("System Name from ReadDemo: " + system.getName());
+                for (String name : nameList) {
+                    System.out.println("System Name from ReadDemo: " + name);
                 }
+                System.out.println(nameList);
             } else {
                 System.out.println("File not found: " + filePath);
             }
