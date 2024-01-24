@@ -14,7 +14,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MainChartsDelay {
     public static void main(String[] args) throws MalformedURLException {
@@ -28,6 +30,15 @@ public class MainChartsDelay {
 
         // Use the retrieved values as needed
         System.out.println("edgeUrl: " + edgeUrl);
+
+        String filePath1 = "/fdda_system.json";
+        String[] systemNames = SystemReader.readSystemNames(filePath1);
+        String filePath2 = "/fdda1_report.json";
+        // Read report names from JSON file
+        String[] reportNames = ReportReader.readReportNames(filePath2);
+
+        // Initialize the HashMap array
+        HashMap<String, String[]>[] allDataMaps = new HashMap[reportNames.length];
 
         // Your application logic here
         WebDriver driver;
@@ -57,27 +68,38 @@ public class MainChartsDelay {
             WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("btn-login")));
             signInButton.click();
 
-            // Navigate to the desired link
+            // Navigate to the desired link for each reportName
             wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼"))).click();
 
-            // List of table data XPath expressions
-            List<String> tableDataXPaths = Arrays.asList(
-                    "//span/b[text()='FDDA1-01']",
-                    "//span/b[text()='FDDA1-03']"
-                    // Add more XPath expressions if needed
-            );
+            for (int i = 0; i < reportNames.length; i++) {
+                // Initialize the HashMap for the reportName
+                HashMap<String, String[]> reportDataMap = new HashMap<>();
 
-            // Iterate over table data XPaths
-            for (String tableDataXPath : tableDataXPaths) {
-                extractAndPrintTableData(driver, wait, tableDataXPath);
+                // Generate XPath expressions based on the current reportName
+                List<String> tableDataXPaths = Arrays.asList("//span/b[text()='" + reportNames[i] + "']");
+
+                // Iterate over table data XPaths
+                for (String tableDataXPath : tableDataXPaths) {
+                    extractAndPopulateDataMap(driver, wait, tableDataXPath, reportDataMap);
+                }
+
+                // Set the reportDataMap to the corresponding index in allDataMaps
+                allDataMaps[i] = reportDataMap;
             }
         } finally {
             // Close the browser
             driver.quit();
         }
+
+        // Output the HashMap array
+        for (HashMap<String, String[]> reportDataMap : allDataMaps) {
+            for (String key : reportDataMap.keySet()) {
+                System.out.println(key + ": " + Arrays.toString(reportDataMap.get(key)));
+            }
+        }
     }
 
-    private static void extractAndPrintTableData(WebDriver driver, WebDriverWait wait, String tableDataXPath) {
+    private static void extractAndPopulateDataMap(WebDriver driver, WebDriverWait wait, String tableDataXPath, HashMap<String, String[]> dataMap) {
         wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
 
         // Click the associated view button
@@ -97,23 +119,25 @@ public class MainChartsDelay {
 
         try {
             // Extract data from the table
-            StringBuilder allTableData = new StringBuilder();
-
             WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
 
             for (WebElement row : table.findElements(By.tagName("tr"))) {
-                for (WebElement column : row.findElements(By.tagName("td"))) {
-                    allTableData.append(column.getText()).append("\t");
-                }
-                allTableData.append("\n"); // Move to the next line for the next row
-            }
+                List<WebElement> columns = row.findElements(By.tagName("td"));
+                if (columns.size() >= 2) {
+                    String systemName = columns.get(0).getText();
+                    String reportValue = columns.get(1).getText();
 
-            // Output all table data
-            System.out.println(allTableData.toString());
+                    // Populate the dataMap
+                    if (!dataMap.containsKey(systemName)) {
+                        dataMap.put(systemName, new String[]{reportValue});
+                    } else {
+                        dataMap.get(systemName)[0] = reportValue;
+                    }
+                }
+            }
         } finally {
             // Reset to the default content
             driver.switchTo().defaultContent();
         }
     }
-
 }

@@ -3,21 +3,21 @@ package org.example;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
-
-import io.github.cdimascio.dotenv.Dotenv;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
-public class Main {
+public class MainCharts {
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();
@@ -28,8 +28,6 @@ public class Main {
         String edgeUrl = dotenv.get("EDGE_URL");
 
         // Use the retrieved values as needed
-//        System.out.println("APP_USERNAME: " + appUsername);
-//        System.out.println("APP_PASSWORD: " + appPassword);
         System.out.println("edgeUrl: " + edgeUrl);
 
         // Your application logic here
@@ -47,44 +45,47 @@ public class Main {
             driver = new EdgeDriver(edgeOptions);
         }
 
-//        chromeOptions.setBrowserVersion("120.0");
-//        driver = new RemoteWebDriver(new URL("http://192.168.88.196:4444"),chromeOptions);
-        driver.get("https://kaizen-east.coppertreeanalytics.com/v3/#/signin");
+        try {
+            driver.get("https://kaizen-east.coppertreeanalytics.com/v3/#/signin");
 
-        String title = driver.getTitle();
-//        assertEquals("Bootstrap Datatables - examples & tutorial", title);
+            driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
+            // Login
+            WebElement emailInput = driver.findElement(By.id("email"));
+            emailInput.sendKeys(appUsername);
+            WebElement passwordInput = driver.findElement(By.id("password"));
+            passwordInput.sendKeys(appPassword);
+            WebElement signInButton = driver.findElement(By.className("btn-login"));
+            signInButton.click();
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
+            driver.manage().timeouts().implicitlyWait(Duration.ofMillis(3000));
+            // Navigate to the desired link
+            driver.findElement(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼")).click();
 
-        WebElement emailInput = driver.findElement(By.id("email"));
-        emailInput.sendKeys(appUsername);
-        WebElement passwordInput = driver.findElement(By.id("password"));
-        passwordInput.sendKeys(appPassword);
+            // List of table data XPath expressions
+            List<String> tableDataXPaths = Arrays.asList(
+                    "//span/b[text()='FDDA1-01']",
+                    "//span/b[text()='FDDA1-03']"
+                    // Add more XPath expressions if needed
+            );
 
-        // Find the "Sign In" button by class name and click it
-        WebElement signInButton = driver.findElement(By.className("btn-login"));
-        signInButton.click();
+            // Iterate over table data XPaths
+            for (String tableDataXPath : tableDataXPaths) {
+                driver.findElement(By.linkText("Charts")).click();
+                extractAndPrintTableData(driver, tableDataXPath);
+            }
+        } finally {
+            // Close the browser
+            driver.quit();
+        }
+    }
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(3000));
-
-        // Find and click the link using its link text
-        WebElement link = driver.findElement(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼"));
-        link.click();
-
-        // Find the link with class "feature-bar-text" using its text content
-        WebElement chartsLink = driver.findElement(By.linkText("Charts"));
-
-        // Click on the "Charts" link
-        chartsLink.click();
-
-        // Find the element with the text "AHU Temperature out of range KPI Report (FA) R1"
-//        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='AHU Temperature out of range KPI Report (FA) R1']"));
-        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='FDDA1-01']"));
-
+    private static void extractAndPrintTableData(WebDriver driver, String tableDataXPath) {
         // Click the associated view button
+        WebElement targetElement = driver.findElement(By.xpath(tableDataXPath));
         WebElement viewButton = targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"));
         viewButton.click();
 
+        // Continue with the rest of the code for extracting data from the table
         driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
 
         // Locate the parent div based on its attributes
@@ -105,24 +106,26 @@ public class Main {
         // Switch to the second iframe
         driver.switchTo().frame(secondIframe);
 
+        try {
+            // Extract data from the table
+            StringBuilder allTableData = new StringBuilder();
 
-        // Now you can proceed with extracting data from the table inside the second iframe
-        WebElement table = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
+            WebElement table = new WebDriverWait(driver, Duration.ofSeconds(10))
+                    .until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
 
-        // Extract data from the table
-        StringBuilder allTableData = new StringBuilder();
-
-        for (WebElement row : table.findElements(By.tagName("tr"))) {
-            for (WebElement column : row.findElements(By.tagName("td"))) {
-                allTableData.append(column.getText()).append("\t");
+            for (WebElement row : table.findElements(By.tagName("tr"))) {
+                for (WebElement column : row.findElements(By.tagName("td"))) {
+                    allTableData.append(column.getText()).append("\t");
+                }
+                allTableData.append("\n"); // Move to the next line for the next row
             }
-            allTableData.append("\n"); // Move to the next line for the next row
-        }
 
-        // Output all table data
-        System.out.println(allTableData.toString());
-        // Close the browser
-        driver.quit();
+            // Output all table data
+            System.out.println(allTableData.toString());
+        } finally {
+            // Reset to the default content
+            driver.switchTo().defaultContent();
+        }
     }
+
 }
