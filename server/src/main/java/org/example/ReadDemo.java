@@ -1,38 +1,24 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
 public class ReadDemo {
     public static void main(String[] args) {
-        // Specify the path to the JSON file on the classpath
-        String filePath = "/fdda_system.json"; // Note the leading slash
+        String filePath1 = "/fdda_system.json";
 
-        // Create an instance of ObjectMapper
-        ObjectMapper objectMapper = new ObjectMapper();
+        String[] nameList1 = SystemReader.readSystemNames(filePath1);
 
-        try {
-            // Read system list from the JSON file on the classpath
-            InputStream inputStream = ReadDemo.class.getResourceAsStream(filePath);
-            if (inputStream != null) {
-                SystemList systemList = objectMapper.readValue(inputStream, SystemList.class);
-
-                // Access the system list
-                List<SystemList.SystemInfo> systems = systemList.getSystems();
-
-                // Display system names
-                for (SystemList.SystemInfo system : systems) {
-                    System.out.println("System Name from ReadDemo: " + system.getName());
-                }
-            } else {
-                System.out.println("File not found: " + filePath);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Display system names
+        for (String name : nameList1) {
+            System.out.println("System Name from SystemReader: " + name);
         }
+
+        String filePath2 = "/fdda1_report.json";
+
+        String[] nameList2 = ReportReader.readReportNames(filePath2);
+
+        // Display report names
+        for (String name : nameList2) {
+            System.out.println("Report Name from ReportReader: " + name);
+        }
+
     }
 }
