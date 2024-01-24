@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainChartsMapbak {
+public class MainChartsMap {
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();
