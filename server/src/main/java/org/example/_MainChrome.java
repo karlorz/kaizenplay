@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class Main {
+public class _MainChrome {
     private static final String DEFAULT_VALUE = "-1";
     private static final int CONFIGURABLE_DELAY_SECONDS = 5;
     private static final int POLLING_INTERVAL_MILLIS = 500; // 500 milliseconds interval

@@ -1,13 +1,17 @@
 package org.example;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.TimeoutException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,9 +23,9 @@ import java.util.List;
 public class Main {
     private static final String DEFAULT_VALUE = "-1";
     private static final int CONFIGURABLE_DELAY_SECONDS = 5;
-    private static final int POLLING_INTERVAL_MILLIS = 500; // 2-second interval
-    private static final int LONGER_INTERVAL_SECONDS = 15;
-    private static final int LONGER_POLLING_MILLIS = 3000;
+    private static final int POLLING_INTERVAL_MILLIS = 500; // 500 milliseconds interval
+    private static final int LONGER_INTERVAL_SECONDS = 10;
+    private static final int LONGER_POLLING_MILLIS = 500;
 
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
@@ -31,6 +35,7 @@ public class Main {
         String appUsername = dotenv.get("APP_USERNAME");
         String appPassword = dotenv.get("APP_PASSWORD");
         String edgeUrl = dotenv.get("EDGE_URL");
+        String browser = dotenv.get("BROWSER");
 
         // Use the retrieved values as needed
         System.out.println("edgeUrl: " + edgeUrl);
@@ -50,16 +55,25 @@ public class Main {
         // Your application logic here
         WebDriver driver;
 
-        if (edgeUrl != null && !edgeUrl.isEmpty()) {
-            // RemoteWebDriver with EdgeOptions
-            EdgeOptions edgeOptions = new EdgeOptions();
+        if ("chrome".equalsIgnoreCase(browser) && (edgeUrl == null || edgeUrl.isEmpty())) {
+            // Use ChromeDriver locally
+            ChromeOptions chromeOptions = new ChromeOptions();
             // Set additional options if needed
-            driver = new RemoteWebDriver(new URL(edgeUrl), edgeOptions);
-        } else {
-            // Local EdgeDriver with EdgeOptions
+            driver = new ChromeDriver(chromeOptions);
+        } else if ("edge".equalsIgnoreCase(browser) && (edgeUrl == null || edgeUrl.isEmpty())) {
+            // Use EdgeDriver with EdgeOptions locally
             EdgeOptions edgeOptions = new EdgeOptions();
             // Set additional options if needed
             driver = new EdgeDriver(edgeOptions);
+        } else {
+
+            if ("chrome".equalsIgnoreCase(browser)) {
+                ChromeOptions chromeOptions = new ChromeOptions();
+                driver = new RemoteWebDriver(new URL(edgeUrl), chromeOptions);
+            } else { // Default to Edge if browser is not specified or unknown
+                EdgeOptions edgeOptions = new EdgeOptions();
+                driver = new RemoteWebDriver(new URL(edgeUrl), edgeOptions);
+            }
         }
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(CONFIGURABLE_DELAY_SECONDS));
@@ -104,6 +118,11 @@ public class Main {
                     finalDataMap.get(systemName).put(reportNames[i], value);
                 }
             }
+        } catch (Exception e) {
+            // Print the exception details
+            // e.printStackTrace();
+            // Handle other exceptions
+            System.out.println("Error: Exception occurred - " + e.getMessage());
         } finally {
             // Close the browser
             driver.quit();
@@ -117,39 +136,48 @@ public class Main {
         System.out.println();
 
         for (String systemName : systemNames) {
-            System.out.print(systemName + "\t");
-            for (String reportName : reportNames) {
-                String value = finalDataMap.get(systemName).get(reportName);
-                System.out.print((value != null) ? value : "");
-                System.out.print("\t");
+            try {
+                System.out.print(systemName + "\t");
+                for (String reportName : reportNames) {
+                    String value = finalDataMap.get(systemName).get(reportName);
+                    System.out.print((value != null) ? value : DEFAULT_VALUE);
+                    System.out.print("\t");
+                }
+                System.out.println();
+            } catch (NullPointerException e) {
+                // Handle the NullPointerException (e.g., print a message, provide a default value)
+                System.out.print(DEFAULT_VALUE + "\t");
+            } catch (Exception e) {
+                // Handle other exceptions
+                System.out.println("Error: Exception occurred - " + e.getMessage());
+                // You may want to log the exception or take appropriate action
             }
-            System.out.println();
         }
     }
 
     private static void extractAndPopulateDataMap(WebDriver driver, WebDriverWait wait, String tableDataXPath, HashMap<String, String[]> dataMap) {
-        // Create a WebDriverWait with a longer interval for this specific condition
-        WebDriverWait longerWait = new WebDriverWait(driver, Duration.ofSeconds(LONGER_INTERVAL_SECONDS));
-        longerWait.pollingEvery(Duration.ofMillis(LONGER_POLLING_MILLIS));
-
-        longerWait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
-
-        // Click the associated view button
-        WebElement targetElement = longerWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(tableDataXPath)));
-        WebElement viewButton = longerWait.until(ExpectedConditions.elementToBeClickable(targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"))));
-        viewButton.click();
-
-        // Continue with the rest of the code for extracting data from the table
-        longerWait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//div[@chart-name='instance.name' and contains(@id, 'logi-chart-')]")));
-
-        WebElement firstIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
-        driver.switchTo().frame(firstIframe);
-
-        WebElement secondIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
-        driver.switchTo().frame(secondIframe);
-
         try {
+            // Create a WebDriverWait with a longer interval for this specific condition
+            WebDriverWait longerWait = new WebDriverWait(driver, Duration.ofSeconds(LONGER_INTERVAL_SECONDS));
+            longerWait.pollingEvery(Duration.ofMillis(LONGER_POLLING_MILLIS));
+
+            longerWait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
+
+            // Click the associated view button
+            WebElement targetElement = longerWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(tableDataXPath)));
+            WebElement viewButton = longerWait.until(ExpectedConditions.elementToBeClickable(targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"))));
+            viewButton.click();
+
+            // Continue with the rest of the code for extracting data from the table
+            longerWait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.xpath("//div[@chart-name='instance.name' and contains(@id, 'logi-chart-')]")));
+
+            WebElement firstIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
+            driver.switchTo().frame(firstIframe);
+
+            WebElement secondIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
+            driver.switchTo().frame(secondIframe);
+
             // Extract data from the table
             WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
 
@@ -167,6 +195,11 @@ public class Main {
                     }
                 }
             }
+        } catch (Exception e) {
+            // Print the exception details
+            // e.printStackTrace();
+            // Handle other exceptions
+            System.out.println("Error: Exception occurred - " + e.getMessage());
         } finally {
             // Reset to the default content
             driver.switchTo().defaultContent();
