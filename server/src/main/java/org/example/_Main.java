@@ -77,7 +77,7 @@ public class _Main {
 
         // Find the element with the text "AHU Temperature out of range KPI Report (FA) R1"
 //        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='AHU Temperature out of range KPI Report (FA) R1']"));
-        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='FDDA1-01']"));
+        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='FDDA1-04']"));
 
         // Click the associated view button
         WebElement viewButton = targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"));

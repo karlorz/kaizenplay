@@ -18,6 +18,10 @@ import java.util.List;
 
 public class Main {
     private static final String DEFAULT_VALUE = "-1";
+    private static final int CONFIGURABLE_DELAY_SECONDS = 5;
+    private static final int POLLING_INTERVAL_MILLIS = 500; // 2-second interval
+    private static final int LONGER_INTERVAL_SECONDS = 15;
+    private static final int LONGER_POLLING_MILLIS = 3000;
 
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
@@ -58,7 +62,8 @@ public class Main {
             driver = new EdgeDriver(edgeOptions);
         }
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(CONFIGURABLE_DELAY_SECONDS));
+        wait.pollingEvery(Duration.ofMillis(POLLING_INTERVAL_MILLIS));
 
         try {
             driver.get("https://kaizen-east.coppertreeanalytics.com/v3/#/signin");
@@ -123,15 +128,19 @@ public class Main {
     }
 
     private static void extractAndPopulateDataMap(WebDriver driver, WebDriverWait wait, String tableDataXPath, HashMap<String, String[]> dataMap) {
-        wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
+        // Create a WebDriverWait with a longer interval for this specific condition
+        WebDriverWait longerWait = new WebDriverWait(driver, Duration.ofSeconds(LONGER_INTERVAL_SECONDS));
+        longerWait.pollingEvery(Duration.ofMillis(LONGER_POLLING_MILLIS));
+
+        longerWait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
 
         // Click the associated view button
-        WebElement targetElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(tableDataXPath)));
-        WebElement viewButton = wait.until(ExpectedConditions.elementToBeClickable(targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"))));
+        WebElement targetElement = longerWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(tableDataXPath)));
+        WebElement viewButton = longerWait.until(ExpectedConditions.elementToBeClickable(targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"))));
         viewButton.click();
 
         // Continue with the rest of the code for extracting data from the table
-        wait.until(ExpectedConditions.presenceOfElementLocated(
+        longerWait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//div[@chart-name='instance.name' and contains(@id, 'logi-chart-')]")));
 
         WebElement firstIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
