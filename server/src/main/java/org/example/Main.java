@@ -25,7 +25,7 @@ public class Main {
     private static final int CONFIGURABLE_DELAY_SECONDS = 5;
     private static final int POLLING_INTERVAL_MILLIS = 500; // 500 milliseconds interval
     private static final int LONGER_INTERVAL_SECONDS = 10;
-    private static final int LONGER_POLLING_MILLIS = 500;
+    private static final int LONGER_POLLING_MILLIS = 2500;
 
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file

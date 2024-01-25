@@ -1,22 +1,32 @@
 {
   "systems": [
-    {
-      "name": "AHU-2-01"
-    },
-    {
-      "name": "AHU-2M-04"
-    },
-    {
-      "name": "AHU-2M-05"
-    },
-    {
-      "name": "AHU-3-03"
-    },
-    {
-      "name": "AHU-7-03"
-    },
-    {
-      "name": "AHU-7-04"
-    }
+    { "name": "AHU-2-01" },
+    { "name": "AHU-2M-01" },
+    { "name": "AHU-2M-02" },
+    { "name": "AHU-2M-03" },
+    { "name": "AHU-2M-04" },
+    { "name": "AHU-2M-05" },
+    { "name": "AHU-2M-06" },
+    { "name": "AHU-2M-07" },
+    { "name": "AHU-2M-08" },
+    { "name": "AHU-3-01" },
+    { "name": "AHU-3-02" },
+    { "name": "AHU-3-03" },
+    { "name": "AHU-5-01" },
+    { "name": "AHU-5-02" },
+    { "name": "AHU-7-01" },
+    { "name": "AHU-7-02" },
+    { "name": "AHU-7-03" },
+    { "name": "AHU-7-04" },
+    { "name": "AHU-7-05" },
+    { "name": "AHU-7-06" },
+    { "name": "AHU-8-01" },
+    { "name": "AHU-8-02" },
+    { "name": "AHU-8-03" },
+    { "name": "AHU-9-01" },
+    { "name": "AHU-9-02" },
+    { "name": "PAU-2M-01" },
+    { "name": "PAU-2M-02" },
+    { "name": "PAU-3-01" }
   ]
 }
