@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class Main {
+public class _MainChartsMap {
     private static final String DEFAULT_VALUE = "-1";
 
     public static void main(String[] args) throws MalformedURLException {

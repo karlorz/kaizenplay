@@ -16,7 +16,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainChartsDelay {
+public class _MainChartsDelay {
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();

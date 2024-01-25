@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class ReadDemoArray {
+public class _ReadDemoArray {
     public static void main(String[] args) {
         // Specify the path to the JSON file on the classpath
         String filePath = "/fdda_system.json"; // Note the leading slash
@@ -16,7 +16,7 @@ public class ReadDemoArray {
 
         try {
             // Read system list from the JSON file on the classpath
-            InputStream inputStream = ReadDemo.class.getResourceAsStream(filePath);
+            InputStream inputStream = _ReadDemo.class.getResourceAsStream(filePath);
             if (inputStream != null) {
                 SystemList systemList = objectMapper.readValue(inputStream, SystemList.class);
 

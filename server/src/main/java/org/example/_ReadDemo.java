@@ -1,6 +1,6 @@
 package org.example;
 
-public class ReadDemo {
+public class _ReadDemo {
     public static void main(String[] args) {
         String filePath1 = "/fdda_system.json";
 

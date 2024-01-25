@@ -3,8 +3,6 @@ package org.example;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
@@ -17,7 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 
-public class Main {
+public class _Main {
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();

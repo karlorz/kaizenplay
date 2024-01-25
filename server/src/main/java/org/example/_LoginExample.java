@@ -9,7 +9,7 @@ import org.openqa.selenium.edge.EdgeDriver;
 import java.io.*;
 import java.util.Set;
 
-public class LoginExample {
+public class _LoginExample {
 
     public static void main(String[] args) {
         // Load environment variables from .env file
