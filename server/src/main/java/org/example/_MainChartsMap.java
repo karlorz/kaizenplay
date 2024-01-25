@@ -1,5 +1,4 @@
 package org.example;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -17,7 +16,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainChartsMap {
+public class Main {
+    private static final String DEFAULT_VALUE = "-1";
+
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();
@@ -38,6 +39,9 @@ public class MainChartsMap {
 
         // Initialize the HashMap array
         HashMap<String, String[]>[] allDataMaps = new HashMap[reportNames.length];
+
+        // Initialize the final data map
+        HashMap<String, HashMap<String, String>> finalDataMap = new HashMap<>();
 
         // Your application logic here
         WebDriver driver;
@@ -70,6 +74,7 @@ public class MainChartsMap {
             // Navigate to the desired link for each reportName
             wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼"))).click();
 
+            // Iterate over report names
             for (int i = 0; i < reportNames.length; i++) {
                 // Initialize the HashMap for the reportName
                 HashMap<String, String[]> reportDataMap = new HashMap<>();
@@ -84,17 +89,36 @@ public class MainChartsMap {
 
                 // Set the reportDataMap to the corresponding index in allDataMaps
                 allDataMaps[i] = reportDataMap;
+
+                // Populate the finalDataMap with preset systemNames and reportNames
+                for (String systemName : systemNames) {
+                    finalDataMap.computeIfAbsent(systemName, k -> new HashMap<>());
+                    String value = reportDataMap.containsKey(systemName)
+                            ? reportDataMap.get(systemName)[0]
+                            : DEFAULT_VALUE;
+                    finalDataMap.get(systemName).put(reportNames[i], value);
+                }
             }
         } finally {
             // Close the browser
             driver.quit();
         }
 
-        // Output the HashMap array
-        for (HashMap<String, String[]> reportDataMap : allDataMaps) {
-            for (String key : reportDataMap.keySet()) {
-                System.out.println(key + ": " + Arrays.toString(reportDataMap.get(key)));
+        // Output the final data map
+        System.out.print("System\t");
+        for (String reportName : reportNames) {
+            System.out.print(reportName + "\t");
+        }
+        System.out.println();
+
+        for (String systemName : systemNames) {
+            System.out.print(systemName + "\t");
+            for (String reportName : reportNames) {
+                String value = finalDataMap.get(systemName).get(reportName);
+                System.out.print((value != null) ? value : "");
+                System.out.print("\t");
             }
+            System.out.println();
         }
     }
 

@@ -1,23 +1,24 @@
 package org.example;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
-
-import io.github.cdimascio.dotenv.Dotenv;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
-public class Main {
+public class MainChartsMap {
+    private static final String DEFAULT_VALUE = "-1";
+
     public static void main(String[] args) throws MalformedURLException {
         // Load environment variables from .env file
         Dotenv dotenv = Dotenv.configure().load();
@@ -28,9 +29,19 @@ public class Main {
         String edgeUrl = dotenv.get("EDGE_URL");
 
         // Use the retrieved values as needed
-//        System.out.println("APP_USERNAME: " + appUsername);
-//        System.out.println("APP_PASSWORD: " + appPassword);
         System.out.println("edgeUrl: " + edgeUrl);
+
+        String filePath1 = "/fdda_system.json";
+        String[] systemNames = SystemReader.readSystemNames(filePath1);
+        String filePath2 = "/fdda1_report.json";
+        // Read report names from JSON file
+        String[] reportNames = ReportReader.readReportNames(filePath2);
+
+        // Initialize the HashMap array
+        HashMap<String, String[]>[] allDataMaps = new HashMap[reportNames.length];
+
+        // Initialize the final data map
+        HashMap<String, HashMap<String, String>> finalDataMap = new HashMap<>();
 
         // Your application logic here
         WebDriver driver;
@@ -47,82 +58,109 @@ public class Main {
             driver = new EdgeDriver(edgeOptions);
         }
 
-//        chromeOptions.setBrowserVersion("120.0");
-//        driver = new RemoteWebDriver(new URL("http://192.168.88.196:4444"),chromeOptions);
-        driver.get("https://kaizen-east.coppertreeanalytics.com/v3/#/signin");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        String title = driver.getTitle();
-//        assertEquals("Bootstrap Datatables - examples & tutorial", title);
+        try {
+            driver.get("https://kaizen-east.coppertreeanalytics.com/v3/#/signin");
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
+            // Login
+            WebElement emailInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+            emailInput.sendKeys(appUsername);
+            WebElement passwordInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
+            passwordInput.sendKeys(appPassword);
+            WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("btn-login")));
+            signInButton.click();
 
-        WebElement emailInput = driver.findElement(By.id("email"));
-        emailInput.sendKeys(appUsername);
-        WebElement passwordInput = driver.findElement(By.id("password"));
-        passwordInput.sendKeys(appPassword);
+            // Navigate to the desired link for each reportName
+            wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼"))).click();
 
-        // Find the "Sign In" button by class name and click it
-        WebElement signInButton = driver.findElement(By.className("btn-login"));
-        signInButton.click();
+            // Iterate over report names
+            for (int i = 0; i < reportNames.length; i++) {
+                // Initialize the HashMap for the reportName
+                HashMap<String, String[]> reportDataMap = new HashMap<>();
 
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(3000));
+                // Generate XPath expressions based on the current reportName
+                List<String> tableDataXPaths = Arrays.asList("//span/b[text()='" + reportNames[i] + "']");
 
-        // Find and click the link using its link text
-        WebElement link = driver.findElement(By.linkText("Block T 伊利沙伯醫院日間醫療中心新翼"));
-        link.click();
+                // Iterate over table data XPaths
+                for (String tableDataXPath : tableDataXPaths) {
+                    extractAndPopulateDataMap(driver, wait, tableDataXPath, reportDataMap);
+                }
 
-        // Find the link with class "feature-bar-text" using its text content
-        WebElement chartsLink = driver.findElement(By.linkText("Charts"));
+                // Set the reportDataMap to the corresponding index in allDataMaps
+                allDataMaps[i] = reportDataMap;
 
-        // Click on the "Charts" link
-        chartsLink.click();
-
-        // Find the element with the text "AHU Temperature out of range KPI Report (FA) R1"
-//        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='AHU Temperature out of range KPI Report (FA) R1']"));
-        WebElement targetElement = driver.findElement(By.xpath("//span/b[text()='FDDA1-01']"));
-
-        // Click the associated view button
-        WebElement viewButton = targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"));
-        viewButton.click();
-
-        driver.manage().timeouts().implicitlyWait(Duration.ofMillis(500));
-
-        // Locate the parent div based on its attributes
-        WebElement parentDiv = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(
-                        By.xpath("//div[@chart-name='instance.name' and contains(@id, 'logi-chart-')]")));
-
-        // Locate the iframe inside the parent div
-        WebElement firstIframe = parentDiv.findElement(By.tagName("iframe"));
-
-        // Switch to the first iframe
-        driver.switchTo().frame(firstIframe);
-
-        // Now, locate the second iframe inside the first iframe
-        WebElement secondIframe = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
-
-        // Switch to the second iframe
-        driver.switchTo().frame(secondIframe);
-
-
-        // Now you can proceed with extracting data from the table inside the second iframe
-        WebElement table = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
-
-        // Extract data from the table
-        StringBuilder allTableData = new StringBuilder();
-
-        for (WebElement row : table.findElements(By.tagName("tr"))) {
-            for (WebElement column : row.findElements(By.tagName("td"))) {
-                allTableData.append(column.getText()).append("\t");
+                // Populate the finalDataMap with preset systemNames and reportNames
+                for (String systemName : systemNames) {
+                    finalDataMap.computeIfAbsent(systemName, k -> new HashMap<>());
+                    String value = reportDataMap.containsKey(systemName)
+                            ? reportDataMap.get(systemName)[0]
+                            : DEFAULT_VALUE;
+                    finalDataMap.get(systemName).put(reportNames[i], value);
+                }
             }
-            allTableData.append("\n"); // Move to the next line for the next row
+        } finally {
+            // Close the browser
+            driver.quit();
         }
 
-        // Output all table data
-        System.out.println(allTableData.toString());
-        // Close the browser
-        driver.quit();
+        // Output the final data map
+        System.out.print("System\t");
+        for (String reportName : reportNames) {
+            System.out.print(reportName + "\t");
+        }
+        System.out.println();
+
+        for (String systemName : systemNames) {
+            System.out.print(systemName + "\t");
+            for (String reportName : reportNames) {
+                String value = finalDataMap.get(systemName).get(reportName);
+                System.out.print((value != null) ? value : "");
+                System.out.print("\t");
+            }
+            System.out.println();
+        }
+    }
+
+    private static void extractAndPopulateDataMap(WebDriver driver, WebDriverWait wait, String tableDataXPath, HashMap<String, String[]> dataMap) {
+        wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Charts"))).click();
+
+        // Click the associated view button
+        WebElement targetElement = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(tableDataXPath)));
+        WebElement viewButton = wait.until(ExpectedConditions.elementToBeClickable(targetElement.findElement(By.xpath("./ancestor::div[@class='col-md-6']/following-sibling::div//a[@class='button']"))));
+        viewButton.click();
+
+        // Continue with the rest of the code for extracting data from the table
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//div[@chart-name='instance.name' and contains(@id, 'logi-chart-')]")));
+
+        WebElement firstIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
+        driver.switchTo().frame(firstIframe);
+
+        WebElement secondIframe = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("iframe")));
+        driver.switchTo().frame(secondIframe);
+
+        try {
+            // Extract data from the table
+            WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("tblLowestValues")));
+
+            for (WebElement row : table.findElements(By.tagName("tr"))) {
+                List<WebElement> columns = row.findElements(By.tagName("td"));
+                if (columns.size() >= 2) {
+                    String systemName = columns.get(0).getText();
+                    String reportValue = columns.get(1).getText();
+
+                    // Populate the dataMap
+                    if (!dataMap.containsKey(systemName)) {
+                        dataMap.put(systemName, new String[]{reportValue});
+                    } else {
+                        dataMap.get(systemName)[0] = reportValue;
+                    }
+                }
+            }
+        } finally {
+            // Reset to the default content
+            driver.switchTo().defaultContent();
+        }
     }
 }
