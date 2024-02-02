@@ -40,7 +40,7 @@ public class Main {
         // Use the retrieved values as needed
         System.out.println("edgeUrl: " + edgeUrl);
 
-        String filePath1 = "/fdda_system.json";
+        String filePath1 = "/fdda_systemfull.json";
         String[] systemNames = SystemReader.readSystemNames(filePath1);
         String filePath2 = "/fdda1_report.json";
         // Read report names from JSON file
