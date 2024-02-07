@@ -1,19 +1,10 @@
 {
   "reports": [
     {
-      "name": "FDDA2-10"
+      "name": "FDDA1-01"
     },
     {
-      "name": "FDDA2-11"
-    },
-    {
-      "name": "FDDA2-12"
-    },
-    {
-      "name": "FDDA2-13"
-    },
-    {
-      "name": "FDDA2-14"
+      "name": "FDDA1-02"
     }
   ]
 }
