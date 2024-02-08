@@ -98,13 +98,8 @@ public class Main {
                 // Initialize the HashMap for the reportName
                 HashMap<String, String[]> reportDataMap = new HashMap<>();
 
-                // Generate XPath expressions based on the current reportName
-                List<String> tableDataXPaths = Arrays.asList("//span/b[text()='" + reportNames[i] + "']");
-
-                // Iterate over table data XPaths
-                for (String tableDataXPath : tableDataXPaths) {
-                    extractAndPopulateDataMap(driver, wait, tableDataXPath, reportDataMap);
-                }
+                String tableDataXPath = "//span/b[text()='" + reportNames[i] + "']";
+                extractAndPopulateDataMap(driver, wait, tableDataXPath, reportDataMap);
 
                 // Set the reportDataMap to the corresponding index in allDataMaps
                 allDataMaps[i] = reportDataMap;
