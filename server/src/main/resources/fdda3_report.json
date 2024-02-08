@@ -1,19 +1,5 @@
 {
   "reports": [
-    { "name": "FDDA3-01" },
-    { "name": "FDDA3-02" },
-    { "name": "FDDA3-03" },
-    { "name": "FDDA3-04" },
-    { "name": "FDDA3-05" },
-    { "name": "FDDA3-06" },
-    { "name": "FDDA3-07" },
-    { "name": "FDDA3-08" },
-    { "name": "FDDA3-09" },
-    { "name": "FDDA3-10" },
-    { "name": "FDDA3-11" },
-    { "name": "FDDA3-12" },
-    { "name": "FDDA3-13" },
-    { "name": "FDDA3-14" },
     { "name": "FDDA3-15" },
     { "name": "FDDA3-16" },
     { "name": "FDDA3-17" }

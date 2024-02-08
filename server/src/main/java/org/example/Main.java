@@ -42,7 +42,7 @@ public class Main {
 
         String filePath1 = "/fdda_systemfull.json";
         String[] systemNames = SystemReader.readSystemNames(filePath1);
-        String filePath2 = "/fdda3_reportfull.json";
+        String filePath2 = "/fdda3_report.json";
         // Read report names from JSON file
         String[] reportNames = ReportReader.readReportNames(filePath2);
 
